@@ -1,0 +1,6 @@
+[submodule "api.fllevent.com"]
+	path = api.fllevent.com
+	url = https://github.com/fllevent/api.fllevent.com
+[submodule "client.fllevent.com"]
+	path = client.fllevent.com
+	url = https://github.com/fllevent/client.fllevent.com
