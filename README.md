@@ -4,4 +4,4 @@ Builds-
   client.fllevent.com
   api.fllevent.com
   
-and sets up a database with phpmyadmin
+and sets up a mysql  database with phpmyadmin
