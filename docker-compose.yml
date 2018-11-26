@@ -1,14 +1,30 @@
 version: '3.2'
 
 services:
+    # clientv2.fllevent.com:
+    #   build: ./clientv2.fllevent.com
+    #   hostname: clientv2
+    #   restart: always
+    #   ports:
+    #     - 8081:80
+    #   networks:
+    #     vpcbr:
+    #       ipv4_address: 10.5.0.2
+    #   environment:
+    #     VIRTUAL_HOST: clientv2.${HOST}
+    #     VIRTUAL_PORT: "8081"
     client.fllevent.com:
       build: ./client.fllevent.com
+      hostname: client
       restart: always
       ports:
-        - 80:80
+        - 8080:80
       networks:
         vpcbr:
           ipv4_address: 10.5.0.3
+      environment:
+        VIRTUAL_HOST: ${HOST}
+        VIRTUAL_PORT: "8080"
     api.fllevent.com:
       build: ./api.fllevent.com
       restart: always
@@ -17,6 +33,9 @@ services:
       networks:
         vpcbr:
           ipv4_address: 10.5.0.4
+      environment:
+        VIRTUAL_HOST: api.${HOST}
+        VIRTUAL_PORT: "4000"
     db:
       image: mysql
       restart: always
@@ -32,39 +51,29 @@ services:
       networks:
         vpcbr:
           ipv4_address: 10.5.0.5
-    phpmyadmin:
+    phpmyadmin.fllevent.com:
       image: phpmyadmin/phpmyadmin
       restart: always
+      ports:
+        - "8002:80"
       environment:
             PMA_ARBITRARY: 1
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      ports:
-        - "5000:80"
+            VIRTUAL_HOST: phpmyadmin.${HOST}
+            VIRTUAL_PORT: "8002"
       networks:
         vpcbr:
-          ipv4_address: 10.5.0.6
+          ipv4_address: 10.5.0.11
       links:
          # for mysql container
         - "db:db"
-    portainer:
-      image: portainer/portainer
-      ports:
-        - "9000:9000"
-      command: -H unix:///var/run/docker.sock
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-        - portainer_data:/data
 volumes:
-    portainer_data:
-    db:
-      driver: "local"
+  db:
+    driver: "local"
 
 networks:
   vpcbr:
-    driver: bridge
-    ipam:
-     config:
-       - subnet: 10.5.0.0/16
-        #  gateway: 10.5.0.1
+    external:
+      name: flleventcom_vpcbr

@@ -1,0 +1,57 @@
+version: '3.2'
+
+services:
+  nginx-proxy:
+      image: jwilder/nginx-proxy
+      ports:
+        - "80:80"
+      volumes:
+        - /var/run/docker.sock:/tmp/docker.sock:ro
+        - /apps/docker-articles/nginx/vhost.d:/etc/nginx/vhost.d
+      networks:
+        vpcbr:
+          ipv4_address: 10.5.0.10
+  portainer.fllevent.com:
+      image: portainer/portainer
+      ports:
+        - "8001:9000"
+      environment:
+        VIRTUAL_HOST: portainer.${HOST}
+        VIRTUAL_PORT: "8001"
+      command: -H unix:///var/run/docker.sock
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - portainer_data:/data
+      networks:
+        vpcbr:
+          ipv4_address: 10.5.0.7
+  gitlab.fllevent.com:
+    image: gitlab/gitlab-ce:latest
+    restart: always
+    hostname: gitlab.${HOST}
+    environment:
+      VIRTUAL_HOST: gitlab.${HOST}
+      VIRTUAL_PORT: "9090"
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url "http://gitlab.${HOST}:9090"
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+    ports:
+      - '9090:9090'
+      - '2224:22'
+    volumes:
+      - '/srv/gitlab/config:/etc/gitlab'
+      - '/srv/gitlab/logs:/var/log/gitlab'
+      - '/srv/gitlab/data:/var/opt/gitlab'
+    networks:
+      vpcbr:
+        ipv4_address: 10.5.0.8
+volumes:
+    portainer_data:
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.0.0/16
+        #  gateway: 10.5.0.1
